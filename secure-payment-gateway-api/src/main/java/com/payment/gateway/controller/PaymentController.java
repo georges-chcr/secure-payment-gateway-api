@@ -2,6 +2,7 @@ package com.payment.gateway.controller;
 
 import com.payment.gateway.dto.FraudRequest;
 import com.payment.gateway.dto.FraudResponse;
+import com.payment.gateway.dto.PaymentResponse;
 import com.payment.gateway.service.FraudDetectionService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,7 +19,7 @@ public class PaymentController {
     }
 
     @PostMapping("/process")
-    public Mono<FraudResponse> processPayment(@RequestBody FraudRequest request) {
+    public Mono<PaymentResponse> processPayment(@RequestBody FraudRequest request) {
         return fraudService.analyzeTransaction(request);
     }
 
