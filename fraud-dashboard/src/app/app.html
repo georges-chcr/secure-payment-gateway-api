@@ -1,0 +1,124 @@
+<div class="dashboard">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <span class="header-icon">&#128737;</span>
+      <div>
+        <h1>Fraud Detection Dashboard</h1>
+        <p class="header-sub">Secure Payment Gateway — Analyse en temps réel</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="content">
+
+    <!-- Analyse Panel -->
+    <section class="card analyze-card">
+      <h2 class="card-title">Lancer une analyse</h2>
+      <p class="card-hint">Collez un tableau JSON de <strong>30 valeurs</strong> (V1&hellip;V28 + Time + Amount).</p>
+
+      <textarea
+        class="json-input"
+        [(ngModel)]="jsonInput"
+        placeholder="[0.1, -1.35, 2.83, ..., 149.62]"
+        rows="6"
+      ></textarea>
+
+      @if (errorMessage()) {
+        <div class="alert alert-error">{{ errorMessage() }}</div>
+      }
+
+      <button class="btn-analyze" (click)="analyze()" [disabled]="isLoading || !jsonInput.trim()">
+        @if (isLoading) {
+          <span class="spinner"></span> Analyse en cours&hellip;
+        } @else {
+          Lancer l'Analyse
+        }
+      </button>
+    </section>
+
+    <!-- Result Panel -->
+    @if (result()) {
+      <section class="card result-card"
+               [class.approved]="result()!.status === 'APPROVED'"
+               [class.review]="result()!.status === 'MANUAL_REVIEW'"
+               [class.rejected]="result()!.status === 'REJECTED'">
+        <div class="result-header">
+          <span class="result-badge"
+                [class.badge-approved]="result()!.status === 'APPROVED'"
+                [class.badge-review]="result()!.status === 'MANUAL_REVIEW'"
+                [class.badge-rejected]="result()!.status === 'REJECTED'">
+            @if (result()!.status === 'APPROVED') { &#10003; }
+            @else if (result()!.status === 'MANUAL_REVIEW') { ⚠️ }
+            @else { &#10005; }
+            {{ result()!.status }}
+          </span>
+          <span class="result-score">Score de risque&nbsp;: <strong>{{ (result()!.riskScore * 100).toFixed(2) }}%</strong></span>
+        </div>
+        <p class="result-message">{{ result()!.message }}</p>
+        <div class="risk-bar-track">
+          <div class="risk-bar-fill"
+               [style.width.%]="result()!.riskScore * 100"
+               [class.bar-approved]="result()!.status === 'APPROVED'"
+               [class.bar-review]="result()!.status === 'MANUAL_REVIEW'"
+               [class.bar-rejected]="result()!.status === 'REJECTED'">
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- History Table -->
+    <section class="card history-card">
+      <div class="history-header">
+        <h2 class="card-title">Historique des transactions</h2>
+        <div class="history-actions">
+          <button class="btn-refresh" (click)="loadHistory()">&#8635; Actualiser</button>
+          <button class="btn-clear" (click)="clearHistory()" [disabled]="isClearing || history().length === 0">
+            @if (isClearing) { <span class="spinner spinner-sm"></span> } @else { 🗑️ }
+            Vider l'historique
+          </button>
+        </div>
+      </div>
+
+      @if (history().length === 0) {
+        <p class="empty-state">Aucune transaction enregistrée.</p>
+      } @else {
+        <div class="table-wrapper">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Statut</th>
+                <th>Score de risque</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (tx of history(); track tx.id) {
+                <tr [class.row-approved]="tx.status === 'APPROVED'"
+                    [class.row-review]="tx.status === 'MANUAL_REVIEW'"
+                    [class.row-rejected]="tx.status === 'REJECTED'">
+                  <td class="td-id">{{ tx.id }}</td>
+                  <td class="td-date">{{ tx.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+                  <td>
+                    <span class="status-chip"
+                          [class.chip-approved]="tx.status === 'APPROVED'"
+                          [class.chip-review]="tx.status === 'MANUAL_REVIEW'"
+                          [class.chip-rejected]="tx.status === 'REJECTED'">
+                      {{ tx.status }}
+                    </span>
+                  </td>
+                  <td class="td-score">{{ (tx.riskScore * 100).toFixed(2) }}%</td>
+                  <td class="td-message">{{ tx.message }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+  </main>
+</div>
